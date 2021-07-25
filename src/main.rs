@@ -15,7 +15,7 @@ fn rocket() -> _ {
 
     // Starts a http server listening at localhost:8000.
     //
-    // TODO: let user control the IP:port the server is listening on.
+    // TODO: let the user control the IP:port the server is listening on.
     rocket::build()
         .mount(
             "/",
