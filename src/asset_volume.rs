@@ -72,12 +72,22 @@ pub fn query_asset_volume(
     let the_graph_query = format!("{{\"query\":\"{{transactions(where: {{timestamp_gt: {}, timestamp_lt: {}}}) {{swaps {{amountUSD pair {{token0 {{id}}token1{{id}}}}}}}}}}\"}}", start, end);
     let the_graph_response_str = match do_query(&state.client, the_graph_query) {
         Ok(response) => response,
-        Err(err) => return Err(NotFound(err)),
+        Err(err) => {
+            return Err(NotFound(format!(
+                "Querying thegraph.com failed with {}",
+                err
+            )))
+        }
     };
     let the_graph_response: TheGraphResponseData =
         match serde_json::from_str(&the_graph_response_str) {
             Ok(response) => response,
-            Err(err) => return Err(NotFound(err.to_string())),
+            Err(err) => {
+                return Err(NotFound(format!(
+                    "Converting response from thegraph.com failed with {}",
+                    err
+                )))
+            }
         };
     Ok(the_graph_response.usd_amount(token).to_string())
 }

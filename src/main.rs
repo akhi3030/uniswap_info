@@ -1,6 +1,8 @@
 use reqwest::ClientBuilder as ReqwestClientBuilder;
 use rocket::{launch, routes};
-use uniswap_info_lib::{query_asset_volume, query_pools, query_swaps, MyState};
+use uniswap_info_lib::{
+    query_asset_volume, query_assets_in_block, query_pools, query_swaps, MyState,
+};
 
 #[launch]
 fn rocket() -> _ {
@@ -15,6 +17,14 @@ fn rocket() -> _ {
     //
     // TODO: let user control the IP:port the server is listening on.
     rocket::build()
-        .mount("/", routes![query_pools, query_asset_volume, query_swaps])
+        .mount(
+            "/",
+            routes![
+                query_pools,
+                query_asset_volume,
+                query_swaps,
+                query_assets_in_block
+            ],
+        )
         .manage(MyState::new(client))
 }

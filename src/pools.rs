@@ -30,7 +30,7 @@ impl TheGraphResponseData {
         // a single array.
         self.data.t0.extend(self.data.t1);
         QueryResponse {
-            pools: self.data.t0,
+            pools: self.data.t0.into_iter().map(|token| token.id).collect(),
         }
     }
 }
@@ -39,7 +39,7 @@ impl TheGraphResponseData {
 /// will be returning an array of Pools where each Pool is the id of the Pool.
 #[derive(Serialize, Deserialize, Debug)]
 struct QueryResponse {
-    pools: Vec<Pool>,
+    pools: Vec<String>,
 }
 
 /// Handler to looking up which pools a given token belongs to.
@@ -58,17 +58,30 @@ pub fn query_pools(token: String, state: &State<MyState>) -> Result<String, NotF
     let the_graph_query = format!("{{\"query\":\"{{t0:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}t1:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}}}\"}}", token, token);
     let the_graph_response_str = match do_query(&state.client, the_graph_query) {
         Ok(input) => input,
-        Err(err) => return Err(NotFound(err)),
+        Err(err) => {
+            return Err(NotFound(format!(
+                "Querying thegraph.com failed with {}",
+                err
+            )))
+        }
     };
 
     let the_query_response: TheGraphResponseData =
         match serde_json::from_str(&the_graph_response_str) {
             Ok(response) => response,
-            Err(err) => return Err(NotFound(err.to_string())),
+            Err(err) => {
+                return Err(NotFound(format!(
+                    "Converting response from thegraph.com failed with {}",
+                    err
+                )))
+            }
         };
     let user_response = the_query_response.into_query_response();
     match serde_json::to_value(user_response) {
         Ok(json) => Ok(json.to_string()),
-        Err(err) => Err(NotFound(err.to_string())),
+        Err(err) => Err(NotFound(format!(
+            "Converting to user response failed with {}",
+            err
+        ))),
     }
 }

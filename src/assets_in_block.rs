@@ -1,10 +1,22 @@
 use super::{do_query, MyState};
 use rocket::{get, response::status::NotFound, State};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Token {
+    id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Pair {
+    token0: Token,
+    token1: Token,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Swap {
-    id: String,
+    pair: Pair,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,13 +40,15 @@ struct TheGraphResponseData {
 
 impl TheGraphResponseData {
     fn into_query_response(self) -> QueryResponse {
-        let mut swaps = vec![];
+        let mut tokens = HashSet::new();
         for transaction in self.data.transactions {
             for swap in transaction.swaps {
-                swaps.push(swap.id);
+                tokens.insert(swap.pair.token0.id);
+                tokens.insert(swap.pair.token1.id);
             }
         }
-        QueryResponse { swaps }
+        let tokens = tokens.into_iter().collect();
+        QueryResponse { tokens }
     }
 }
 
@@ -42,29 +56,25 @@ impl TheGraphResponseData {
 /// will be returning an array of Swaps where each Swap is the id of the Pool.
 #[derive(Serialize, Deserialize, Debug)]
 struct QueryResponse {
-    swaps: Vec<String>,
+    tokens: Vec<String>,
 }
 
-#[get("/swaps/<block_number>")]
-pub fn query_swaps(block_number: u64, state: &State<MyState>) -> Result<String, NotFound<String>> {
-    let the_graph_query = format!("{{\"query\":\"  {{transactions(orderBy: blockNumber, orderDirection: desc, where: {{blockNumber: {}}}) {{swaps {{id}}}}}}\"}}", block_number);
+#[get("/assets_in_block/<block_number>")]
+pub fn query_assets_in_block(
+    block_number: u64,
+    state: &State<MyState>,
+) -> Result<String, NotFound<String>> {
+    let the_graph_query = format!("{{\"query\":\"{{transactions(orderBy: blockNumber, orderDirection: desc, where: {{blockNumber: {}}}) {{swaps {{pair {{token0 {{id}} token1 {{id}}}}}}}}}}\"}}", block_number);
     let the_graph_response_str = match do_query(&state.client, the_graph_query) {
         Ok(input) => input,
-        Err(err) => {
-            return Err(NotFound(format!(
-                "Querying thegraph.com failed with {}",
-                err
-            )))
-        }
+        Err(err) => return Err(NotFound(err)),
     };
     let the_graph_response: TheGraphResponseData =
         match serde_json::from_str(&the_graph_response_str) {
             Ok(response) => response,
             Err(err) => {
-                return Err(NotFound(format!(
-                    "Converting response from thegraph.com failed with {}",
-                    err
-                )))
+                println!("failed: {}", err);
+                return Ok(the_graph_response_str);
             }
         };
     let user_response = the_graph_response.into_query_response();
