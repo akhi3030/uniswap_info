@@ -40,6 +40,8 @@ struct TheGraphResponseData {
 
 impl TheGraphResponseData {
     fn into_query_response(self) -> QueryResponse {
+        // Use a hash set to accumulate tokens so that we do not return
+        // duplicates.
         let mut tokens = HashSet::new();
         for transaction in self.data.transactions {
             for swap in transaction.swaps {
@@ -59,6 +61,8 @@ struct QueryResponse {
     tokens: Vec<String>,
 }
 
+/// Handler for looking up which set of assets are mentioned in all the swaps in
+/// all the transactions that were included in a given block.
 #[get("/assets_in_block/<block_number>")]
 pub fn query_assets_in_block(
     block_number: u64,

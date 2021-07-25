@@ -45,6 +45,7 @@ struct QueryResponse {
     swaps: Vec<String>,
 }
 
+/// Handler for looking up the list of swaps in a given block.
 #[get("/swaps/<block_number>")]
 pub fn query_swaps(block_number: u64, state: &State<MyState>) -> Result<String, NotFound<String>> {
     let the_graph_query = format!("{{\"query\":\"  {{transactions(orderBy: blockNumber, orderDirection: desc, where: {{blockNumber: {}}}) {{swaps {{id}}}}}}\"}}", block_number);

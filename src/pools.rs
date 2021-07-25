@@ -16,7 +16,7 @@ struct Pool {
 /// This struct along with the the above structs defines the format of the
 /// result what we expect to get back from thegraph.com when we make the query
 /// defined in `query_pools()`. Rust does not support nested struct declaration
-/// making this definitions a bit messy.
+/// making these definitions a bit messy.
 #[derive(Serialize, Deserialize, Debug)]
 struct TheGraphResponseData {
     data: TheGraphResponse,
@@ -53,8 +53,8 @@ pub fn query_pools(token: String, state: &State<MyState>) -> Result<String, NotF
     // result of the two queries is a bit more complicated. There must be a
     // cleaner way of doing this query.
     //
-    // Note to reviewer: I would love to hear if you have thoughts on how I
-    // could improve this query.
+    // Note to reviewer: I would love to hear your thoughts on how I could
+    // improve this query.
     let the_graph_query = format!("{{\"query\":\"{{t0:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}t1:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}}}\"}}", token, token);
     let the_graph_response_str = match do_query(&state.client, the_graph_query) {
         Ok(input) => input,

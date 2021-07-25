@@ -52,7 +52,8 @@ impl TheGraphResponseData {
             for swap in transaction.swaps {
                 if swap.pair.token0.id == token || swap.pair.token1.id == token {
                     // If we fail to convert the string to float, we could
-                    // return an error or just ignore the value.
+                    // return an error or just ignore the value. I picked the
+                    // latter approach here but this can be up for debate.
                     let amount = swap.amount_usd.parse::<f64>().unwrap_or_else(|_| 0.0);
                     total += amount;
                 }
@@ -62,6 +63,8 @@ impl TheGraphResponseData {
     }
 }
 
+/// Handler to looking up how much volume a given token experienced in a given
+/// time frame.
 #[get("/asset_volume/<token>/<start>/<end>")]
 pub fn query_asset_volume(
     token: String,
