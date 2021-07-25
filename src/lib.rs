@@ -1,10 +1,11 @@
 mod asset_volume;
 mod pools;
+mod swaps;
 
 pub use asset_volume::query_asset_volume;
 pub use pools::query_pools;
 use reqwest::Client as ReqwestClient;
-use rocket::{get, response::status::NotFound, State};
+pub use swaps::query_swaps;
 
 pub struct MyState {
     client: ReqwestClient,
@@ -29,21 +30,4 @@ fn do_query(client: &ReqwestClient, body: String) -> Result<String, String> {
         Ok(text) => Ok(text),
         Err(err) => Err(err.to_string()),
     }
-}
-
-#[get("/block/<block_number>")]
-pub fn explore_block(
-    block_number: u128,
-    state: &State<MyState>,
-) -> Result<String, NotFound<String>> {
-    // The following gives the list of transactions that were included in the
-    // provided block. Now that we have a list of transactions, we can build a
-    // query to get a list of swaps in each transaction in the list. Once we
-    // have a list of swaps, we can then build another query to get the set of
-    // assets that were swaped in each swap in the list.
-    let body = format!(
-        "{{transactions(orderBy: {}, orderDirection: desc, where: {{blockNumber: 1234}}) {{id}}}}",
-        block_number
-    );
-    Ok(do_query(&state.client, body).unwrap())
 }

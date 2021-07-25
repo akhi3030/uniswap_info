@@ -1,0 +1,18 @@
+= Introduction
+
+This is a simple webserver that exposes a RESTful interface to some of the state on Uniswap's subgraph on thegraph.com.
+
+== Getting started
+
+* Install rust.  See https://www.rust-lang.org/tools/install for more details.
+* Switch the rust compiler to nightly version.  Nightly version of the compiler is less stable and has some experimeental features.  This version of the compiler is needed for some of the packages that the project is using.  `rustup default nightly`.
+* Run `cargo run`.  This will compile and start the webserver.
+* Navigate to http://127.0.0.1:8000/pools/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 to see which pools the given token exists on.
+* Navigate to http://127.0.0.1:8000/asset_volume/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48/1626978680/1627065080 to see the volume of swpas for the given token during the given time period.
+
+== Notes
+
+* The project uses https://rocket.rs/ for the webserver.  This is using some experimental features of rust and therefore the project needs the nightly compiler to run.
+* The project uses https://serde.rs/ for serialising and deserialising rust objects to and fro json.  This crate is able to help simplify dramatically how much marshalling and demarshalling code I had to write.
+* I experimented briefly with https://github.com/graphql-rust/graphql-client to see if I use it to generate the graphql queries instead of writing them by hand.  I could not get the crate to work with the Uniswap's schema due to some missing type definitions.  In a real production system, we should probably not be hand crafting the queries.
+* Rust has very powerful error handling techniques.  I have just scratche the surface of how carefully I handle errors in the project.  For more a production critical system, we would want to define our own error types and use more careful error handling.
