@@ -55,7 +55,7 @@ pub fn query_pools(token: String, state: &State<MyState>) -> Result<String, NotF
     //
     // Note to reviewer: I would love to hear your thoughts on how I could
     // improve this query.
-    let the_graph_query = format!("{{\"query\":\"{{t0:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}t1:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}}}\"}}", token, token);
+    let the_graph_query = format!("{{\"query\":\"{{t0:pairs(orderDirection:desc, where: {{token0: \\\"{}\\\"}}){{id}}t1:pairs(orderDirection:desc, where: {{token1: \\\"{}\\\"}}){{id}}}}\"}}", token, token);
     let the_graph_response_str = match do_query(&state.client, the_graph_query) {
         Ok(input) => input,
         Err(err) => {
